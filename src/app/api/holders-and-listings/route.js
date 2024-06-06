@@ -95,7 +95,6 @@ export async function GET() {
         difference: holder.balance - (listingsCount[holder.address] || 0)
     }));
 
-    // Order by difference (balance - listings)
     combinedData.sort((a, b) => b.difference - a.difference);
 
     return NextResponse.json({ holders: combinedData });
