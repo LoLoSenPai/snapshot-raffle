@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { Alchemy, Network } from 'alchemy-sdk';
-import axios from 'axios';
 
 const collectionAddress = process.env.COLLECTION_ADDRESS;
 const collectionSlug = process.env.COLLECTION_SLUG;
@@ -47,14 +46,19 @@ async function fetchListings(cursor = '') {
     try {
         while (hasNextPage) {
             const url = `https://api.opensea.io/api/v2/listings/collection/${collectionSlug}/all?limit=100${cursor ? `&cursor=${cursor}` : ''}`;
-            const response = await axios.get(url, {
+            const response = await fetch(url, {
+                method: 'GET',
                 headers: {
                     accept: 'application/json',
                     'x-api-key': process.env.OPENSEA_API_KEY,
                 },
             });
-            listings = listings.concat(response.data.listings);
-            cursor = response.data.next;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            listings = listings.concat(data.listings);
+            cursor = data.next;
             hasNextPage = !!cursor;
         }
         return listings;
