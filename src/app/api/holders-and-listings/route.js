@@ -2,13 +2,11 @@ import { NextResponse } from 'next/server';
 import { Alchemy, Network } from 'alchemy-sdk';
 import axios from 'axios';
 
-const API_KEY_ALCHEMY = 'mzVmh-ZF7Z3wgWhiie6JWADKb-kZdU_v';
-const API_KEY_OPENSEA = '664425daeeeb45d29c5b1339526cd553';
-const COLLECTION_ADDRESS = '0xe2a5bfbbd797689819067ed50348a0de8e1db018';
-const COLLECTION_SLUG = 'monsieurabbit-genesis-collection';
+const collectionAddress = process.env.COLLECTION_ADDRESS;
+const collectionSlug = process.env.COLLECTION_SLUG;
 
 const alchemySettings = {
-    apiKey: API_KEY_ALCHEMY,
+    apiKey: process.env.ALCHEMY_API_KEY,
     network: Network.ETH_MAINNET,
 };
 
@@ -20,7 +18,7 @@ async function fetchHolders() {
 
     try {
         do {
-            const response = await alchemy.nft.getOwnersForContract(COLLECTION_ADDRESS, { withTokenBalances: true, pageKey });
+            const response = await alchemy.nft.getOwnersForContract(collectionAddress, { withTokenBalances: true, pageKey });
 
             if (response?.owners && response.owners.length > 0) {
                 response.owners.forEach(owner => {
@@ -48,11 +46,11 @@ async function fetchListings(cursor = '') {
 
     try {
         while (hasNextPage) {
-            const url = `https://api.opensea.io/api/v2/listings/collection/${COLLECTION_SLUG}/all?limit=100${cursor ? `&cursor=${cursor}` : ''}`;
+            const url = `https://api.opensea.io/api/v2/listings/collection/${collectionSlug}/all?limit=100${cursor ? `&cursor=${cursor}` : ''}`;
             const response = await axios.get(url, {
                 headers: {
                     accept: 'application/json',
-                    'x-api-key': API_KEY_OPENSEA,
+                    'x-api-key': process.env.OPENSEA_API_KEY,
                 },
             });
             listings = listings.concat(response.data.listings);
