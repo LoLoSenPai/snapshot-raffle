@@ -37,11 +37,11 @@ export default function RaffleForm() {
     };
 
     return (
-        <div className='bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-md space-y-4'>
-            <h1 className='text-2xl font-bold mb-4'>Giveaway du mois</h1>
+        <div className='w-full lg:w-[700px] p-6 space-y-4 bg-gray-800 rounded-lg shadow-md'>
+            <h1 className='mb-4 text-2xl font-bold'>Giveaway du mois</h1>
             <button
                 onClick={fetchHoldersAndListings}
-                className='bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full'
+                className='w-full px-4 py-2 font-bold text-white bg-blue-600 rounded hover:bg-blue-700'
                 disabled={loading}
             >
                 {loading ? 'Fetching...' : 'Fetch Holders and Listings'}
@@ -55,19 +55,19 @@ export default function RaffleForm() {
                                 type="number"
                                 value={numWinners}
                                 onChange={handleNumWinnersChange}
-                                className='text-black p-2 rounded mt-1 block w-full'
+                                className='block w-full p-2 mt-1 text-black rounded'
                                 min="1"
                             />
                         </label>
                         <button
                             onClick={drawWinners}
-                            className='bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full'
+                            className='w-full px-4 py-2 font-bold text-white bg-green-600 rounded hover:bg-green-700'
                         >
                             Draw Winners
                         </button>
                     </div>
                     <div>
-                        <h2 className='text-xl font-bold mt-4'>Winners</h2>
+                        <h2 className='mt-4 text-xl font-bold'>Winners</h2>
                         <ul className='list-disc list-inside'>
                             {winners.map((winner, index) => (
                                 <li key={index}>{winner}</li>
@@ -79,7 +79,7 @@ export default function RaffleForm() {
             {fetched && (
                 <div className='mt-4'>
                     <h2 className='text-xl font-bold'>CSV Data</h2>
-                    <pre className='bg-gray-700 p-4 rounded text-sm overflow-x-auto'>{JSON.stringify(holdersData, null, 2)}</pre>
+                    <pre className='p-4 overflow-x-auto text-sm bg-gray-700 rounded'>{JSON.stringify(holdersData, null, 2)}</pre>
                 </div>
             )}
         </div>
