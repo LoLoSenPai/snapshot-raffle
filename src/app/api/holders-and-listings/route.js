@@ -71,28 +71,44 @@ async function fetchListings(cursor = '') {
 async function countListingsByAddress() {
     const listings = await fetchListings();
     const addressCount = {};
+    const expiredListings = {};
 
     listings.forEach(listing => {
-        const offerer = listing.protocol_data.parameters.offerer.toLowerCase();
-        if (addressCount[offerer]) {
-            addressCount[offerer]++;
+        const { offerer, offer, startTime, endTime } = listing.protocol_data.parameters;
+        const now = Math.floor(Date.now() / 1000); // Get current time in seconds
+
+        // Check if the offer is active
+        if (now >= startTime && now <= endTime) {
+            offer.forEach(item => {
+                if (item.itemType === 3 && item.token.toLowerCase() === collectionAddress.toLowerCase()) {
+                    if (addressCount[offerer.toLowerCase()]) {
+                        addressCount[offerer.toLowerCase()] += parseInt(item.startAmount, 10);
+                    } else {
+                        addressCount[offerer.toLowerCase()] = parseInt(item.startAmount, 10);
+                    }
+                }
+            });
         } else {
-            addressCount[offerer] = 1;
+            if (!expiredListings[offerer.toLowerCase()]) {
+                expiredListings[offerer.toLowerCase()] = [];
+            }
+            expiredListings[offerer.toLowerCase()].push({ startTime, endTime });
         }
     });
 
-    return addressCount;
+    return { addressCount, expiredListings };
 }
 
 export async function GET() {
     const holders = await fetchHolders();
-    const listingsCount = await countListingsByAddress();
+    const { addressCount, expiredListings } = await countListingsByAddress();
 
     const combinedData = holders.map(holder => ({
         address: holder.address,
         balance: holder.balance,
-        listings: listingsCount[holder.address] || 0,
-        difference: holder.balance - (listingsCount[holder.address] || 0)
+        listings: addressCount[holder.address] || 0,
+        expiredListings: expiredListings[holder.address] || [],
+        difference: holder.balance - (addressCount[holder.address] || 0)
     }));
 
     combinedData.sort((a, b) => b.difference - a.difference);

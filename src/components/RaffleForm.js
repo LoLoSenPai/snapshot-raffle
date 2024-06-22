@@ -8,6 +8,8 @@ export default function RaffleForm() {
     const [holdersData, setHoldersData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetched, setFetched] = useState(false);
+    const [showListings, setShowListings] = useState(false);
+    const [showCsvData, setShowCsvData] = useState(true);
 
     const handleNumWinnersChange = (e) => {
         setNumWinners(e.target.value);
@@ -36,6 +38,14 @@ export default function RaffleForm() {
         setWinners(data.winners);
     };
 
+    const toggleShowListings = () => {
+        setShowListings(!showListings);
+    };
+
+    const toggleShowCsvData = () => {
+        setShowCsvData(!showCsvData);
+    };
+
     return (
         <div className='w-full lg:w-[700px] p-6 space-y-4 bg-gray-800 rounded-lg shadow-md'>
             <h1 className='mb-4 text-2xl font-bold'>Giveaway du mois</h1>
@@ -44,7 +54,7 @@ export default function RaffleForm() {
                 className='w-full px-4 py-2 font-bold text-white bg-blue-600 rounded hover:bg-blue-700'
                 disabled={loading}
             >
-                {loading ? 'Fetching...' : 'Fetch Holders and Listings'}
+                {loading ? 'Fetching...' : fetched ? 'Fetch Again' : 'Fetch Holders and Listings'}
             </button>
             {fetched && (
                 <div className='mt-4 space-y-2'>
@@ -65,6 +75,18 @@ export default function RaffleForm() {
                         >
                             Draw Winners
                         </button>
+                        <button
+                            onClick={toggleShowListings}
+                            className='w-full px-4 py-2 mt-2 font-bold text-white bg-yellow-600 rounded hover:bg-yellow-700'
+                        >
+                            {showListings ? 'Hide Listings' : 'Show Listings'}
+                        </button>
+                        <button
+                            onClick={toggleShowCsvData}
+                            className='w-full px-4 py-2 mt-2 font-bold text-white bg-purple-600 rounded hover:bg-purple-700'
+                        >
+                            {showCsvData ? 'Hide CSV Data' : 'Show CSV Data'}
+                        </button>
                     </div>
                     <div>
                         <h2 className='mt-4 text-xl font-bold'>Winners</h2>
@@ -76,7 +98,38 @@ export default function RaffleForm() {
                     </div>
                 </div>
             )}
-            {fetched && (
+            {fetched && showListings && (
+                <div className='mt-4'>
+                    <h2 className='text-xl font-bold'>Valid Listings</h2>
+                    <pre className='p-4 overflow-x-auto text-sm bg-gray-700 rounded'>
+                        {JSON.stringify(holdersData.filter(holder => holder.listings > 0).map(holder => {
+                            const { address, balance, listings, difference } = holder;
+                            return {
+                                address,
+                                balance,
+                                listings,
+                                difference
+                            };
+                        }), null, 2)}
+                    </pre>
+                    <h2 className='text-xl font-bold'>Expired Listings</h2>
+                    <pre className='p-4 overflow-x-auto text-sm bg-gray-700 rounded'>
+                        {JSON.stringify(holdersData.filter(holder => holder.expiredListings.length > 0).map(holder => {
+                            const { address, balance, expiredListings, difference } = holder;
+                            return {
+                                address,
+                                balance,
+                                difference,
+                                expiredListings: expiredListings.map(listing => ({
+                                    startTime: new Date(listing.startTime * 1000).toLocaleDateString(),
+                                    endTime: new Date(listing.endTime * 1000).toLocaleDateString()
+                                }))
+                            };
+                        }), null, 2)}
+                    </pre>
+                </div>
+            )}
+            {fetched && showCsvData && (
                 <div className='mt-4'>
                     <h2 className='text-xl font-bold'>CSV Data</h2>
                     <pre className='p-4 overflow-x-auto text-sm bg-gray-700 rounded'>{JSON.stringify(holdersData, null, 2)}</pre>
